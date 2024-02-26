@@ -60,12 +60,10 @@ public class ClientDao {
 			Connection connection = ConnectionManager.getConnection();
 			PreparedStatement stmt = connection.prepareStatement(DELETE_CLIENT_QUERY);
 			stmt.setLong(1, client.id());
-			stmt.executeUpdate();
-			id = stmt.getGeneratedKeys().getInt(1);
+			return stmt.executeUpdate();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
-		return id;
 	}
 
 	public Client findById(long id) throws DaoException {

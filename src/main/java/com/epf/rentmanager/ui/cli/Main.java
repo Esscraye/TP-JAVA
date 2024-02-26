@@ -100,8 +100,8 @@ public class Main {
     private static void createVehicle() {
         Vehicle vehicle = new Vehicle(
             0,
-            IOUtils.readString("Modèle : ", true),
             IOUtils.readString("Constructeur : ", true),
+            IOUtils.readString("Modèle : ", true),
             IOUtils.readInt("Nombre de places : ")
         );
         try {
@@ -115,7 +115,7 @@ public class Main {
     private static void listVehicles() {
         try {
             for(Vehicle vehicle : VehicleService.getInstance().findAll()) {
-                System.out.println(vehicle.id() + " - " + vehicle.constructeur() + " (" + vehicle.nbPlaces() + " places)");
+                System.out.println(vehicle.id() + " - " + vehicle.constructeur() + " - " + vehicle.modele() + " - " + " (" + vehicle.nbPlaces() + " places)");
             }
         } catch (ServiceException e) {
             System.out.println("Erreur lors de la récupération des véhicules : " + e.getMessage());

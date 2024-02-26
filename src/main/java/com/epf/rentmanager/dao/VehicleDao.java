@@ -24,10 +24,10 @@ public class VehicleDao {
 		return instance;
 	}
 	
-	private static final String CREATE_VEHICLE_QUERY = "INSERT INTO Vehicle(constructeur, nb_places) VALUES(?, ?);";
+	private static final String CREATE_VEHICLE_QUERY = "INSERT INTO Vehicle(constructeur, modele, nb_places) VALUES(?, ?, ?);";
 	private static final String DELETE_VEHICLE_QUERY = "DELETE FROM Vehicle WHERE id=?;";
-	private static final String FIND_VEHICLE_QUERY = "SELECT id, constructeur, nb_places FROM Vehicle WHERE id=?;";
-	private static final String FIND_VEHICLES_QUERY = "SELECT id, constructeur, nb_places FROM Vehicle;";
+	private static final String FIND_VEHICLE_QUERY = "SELECT id, constructeur, modele, nb_places FROM Vehicle WHERE id=?;";
+	private static final String FIND_VEHICLES_QUERY = "SELECT id, constructeur, modele, nb_places FROM Vehicle;";
 	
 	public long create(Vehicle vehicle) throws DaoException {
 		long id = 0;
@@ -35,9 +35,13 @@ public class VehicleDao {
 			Connection connection = ConnectionManager.getConnection();
 			PreparedStatement stmt = connection.prepareStatement(CREATE_VEHICLE_QUERY, Statement.RETURN_GENERATED_KEYS);
 			stmt.setString(1, vehicle.constructeur());
-			stmt.setInt(2, vehicle.nbPlaces());
-			stmt.executeUpdate();
-			id = stmt.getGeneratedKeys().getInt(1);
+			stmt.setString(2, vehicle.modele());
+			stmt.setInt(3, vehicle.nbPlaces());
+			stmt.execute();
+			ResultSet resultSet = stmt.getGeneratedKeys();
+			if(resultSet.next()) {
+				id = resultSet.getLong(1);
+			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
@@ -50,12 +54,10 @@ public class VehicleDao {
 			Connection connection = ConnectionManager.getConnection();
 			PreparedStatement stmt = connection.prepareStatement(DELETE_VEHICLE_QUERY);
 			stmt.setLong(1, vehicle.id());
-			stmt.executeUpdate();
-			id = stmt.getGeneratedKeys().getInt(1);
+			return stmt.executeUpdate();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
-		return id;
 	}
 
 	public Vehicle findById(long id) throws DaoException {
@@ -67,9 +69,9 @@ public class VehicleDao {
 			if(resultSet.next()) {
                 return new Vehicle(
 						resultSet.getLong(1),
-						"model",
 						resultSet.getString(2),
-						resultSet.getInt(3)
+						resultSet.getString(3),
+						resultSet.getInt(4)
 				);
 			}
 		} catch (SQLException e) {
@@ -87,9 +89,9 @@ public class VehicleDao {
 			while (resultSet.next()) {
 				Vehicle vehicle = new Vehicle(
 						resultSet.getLong(1),
-						"model",
 						resultSet.getString(2),
-						resultSet.getInt(3)
+						resultSet.getString(3),
+						resultSet.getInt(4)
 				);
 				vehicles.add(vehicle);
 			}
