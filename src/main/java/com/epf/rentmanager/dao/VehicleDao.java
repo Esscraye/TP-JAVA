@@ -100,6 +100,4 @@ public class VehicleDao {
 		}
 		return vehicles;
 	}
-	
-
 }
