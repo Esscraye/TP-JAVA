@@ -10,8 +10,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.epf.rentmanager.dto.ReservationDto;
 import com.epf.rentmanager.exception.DaoException;
 import com.epf.rentmanager.model.Reservation;
+import com.epf.rentmanager.model.Vehicle;
 import com.epf.rentmanager.persistence.ConnectionManager;
 
 public class ReservationDao {
@@ -31,7 +33,9 @@ public class ReservationDao {
 	private static final String FIND_RESERVATIONS_BY_VEHICLE_QUERY = "SELECT id, client_id, debut, fin FROM Reservation WHERE vehicle_id=?;";
 	private static final String FIND_RESERVATIONS_QUERY = "SELECT id, client_id, vehicle_id, debut, fin FROM Reservation;";
 	private static final String COUNT_ALL_RESERVATION = "SELECT COUNT(*) FROM Reservation;";
-		
+	private static final String COUNT_ALL_RESERVATION_BY_CLIENT = "SELECT COUNT(*) FROM Reservation WHERE client_id=?;";
+	private static final String COUNT_DISTINCT_VEHICLES_BY_CLIENT_QUERY = "SELECT COUNT(DISTINCT vehicle_id) FROM Reservation WHERE client_id=?;";
+	private static final String FIND_RESERVATIONS_BY_CLIENT_WITH_VEHICLE = "SELECT r.id, r.client_id, r.vehicle_id, v.constructeur, v.modele, v.nb_places, r.debut, r.fin FROM Reservation r JOIN Vehicle v ON r.vehicle_id = v.id WHERE r.client_id=?;";
 	public long create(Reservation reservation) throws DaoException {
 		long id = 0;
 		try {
@@ -164,5 +168,61 @@ public class ReservationDao {
 			throw new RuntimeException(e);
 		}
 		return 0;
+	}
+
+	public int countAllReservationsByClient(long clientId) throws DaoException {
+		try {
+			Connection connection = ConnectionManager.getConnection();
+			PreparedStatement stmt = connection.prepareStatement(COUNT_ALL_RESERVATION_BY_CLIENT);
+			stmt.setLong(1, clientId);
+			ResultSet resultSet = stmt.executeQuery();
+			if(resultSet.next()) {
+				return resultSet.getInt(1);
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		return 0;
+	}
+
+	public int countDistinctVehiclesByClientId(long clientId) throws DaoException {
+		try {
+		Connection connection = ConnectionManager.getConnection();
+		PreparedStatement stmt = connection.prepareStatement(COUNT_DISTINCT_VEHICLES_BY_CLIENT_QUERY);
+		stmt.setLong(1, clientId);
+		ResultSet resultSet = stmt.executeQuery();
+		if (resultSet.next()) {
+		  return resultSet.getInt(1);
+		}
+		} catch (SQLException e) {
+		throw new RuntimeException(e);
+		}
+		return 0;
+	}
+
+	public List<ReservationDto> findResaByClientWithVehicle(long clientId) throws DaoException {
+		try {
+			Connection connection = ConnectionManager.getConnection();
+			PreparedStatement stmt = connection.prepareStatement(FIND_RESERVATIONS_BY_CLIENT_WITH_VEHICLE);
+			stmt.setLong(1, clientId);
+			ResultSet resultSet = stmt.executeQuery();
+			List<ReservationDto> reservations = new ArrayList<ReservationDto>();
+			while (resultSet.next()) {
+
+				reservations.add(new ReservationDto(
+					resultSet.getLong("id"),
+					resultSet.getLong("client_id"),
+					new Vehicle(
+						resultSet.getLong("vehicle_id"),
+						resultSet.getString("constructeur"),
+						resultSet.getString("modele"),
+						resultSet.getInt("nb_places")),
+					resultSet.getDate("debut").toLocalDate(),
+					resultSet.getDate("fin").toLocalDate()));
+			}
+			return reservations;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

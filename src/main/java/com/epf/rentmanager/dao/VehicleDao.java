@@ -29,7 +29,8 @@ public class VehicleDao {
 	private static final String FIND_VEHICLE_QUERY = "SELECT id, constructeur, modele, nb_places FROM Vehicle WHERE id=?;";
 	private static final String FIND_VEHICLES_QUERY = "SELECT id, constructeur, modele, nb_places FROM Vehicle;";
 	private static final String Count_All_Vehicles = "SELECT COUNT(*) FROM Vehicle;";
-	
+	private static final String FIND_VEHICLES_BY_CLIENT_QUERY = "SELECT v.id, v.constructeur, v.modele, v.nb_places FROM Reservation r JOIN Vehicle v ON r.vehicle_id = v.id WHERE r.client_id=?;";
+
 	public long create(Vehicle vehicle) throws DaoException {
 		long id = 0;
 		try {
@@ -114,5 +115,28 @@ public class VehicleDao {
 			throw new RuntimeException(e);
 		}
 		return 0;
+	}
+
+	public List<Vehicle> findVehiclesByClient(long clientId) throws DaoException {
+
+		try {
+			Connection connection = ConnectionManager.getConnection();
+			PreparedStatement stmt = connection.prepareStatement(FIND_VEHICLES_BY_CLIENT_QUERY);
+			stmt.setLong(1, clientId);
+			ResultSet resultSet = stmt.executeQuery();
+			List<Vehicle> vehicles = new ArrayList<Vehicle>();
+			while (resultSet.next()) {
+				Vehicle vehicle = new Vehicle(
+						resultSet.getLong(1),
+						resultSet.getString(2),
+						resultSet.getString(3),
+						resultSet.getInt(4)
+				);
+				vehicles.add(vehicle);
+			}
+			return vehicles;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
