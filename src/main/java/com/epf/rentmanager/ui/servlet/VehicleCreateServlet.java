@@ -34,7 +34,6 @@ public class VehicleCreateServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/vehicles");
     } catch (com.epf.rentmanager.exception.ServiceException e) {
         e.printStackTrace();
-        // You can also forward to an error page or show an error message
     }
 }
 }

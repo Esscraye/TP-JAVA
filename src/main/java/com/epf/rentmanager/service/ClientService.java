@@ -65,5 +65,13 @@ public class ClientService {
 			throw new ServiceException(e.getMessage());
 		}
 	}
+
+	public int countAllClients() throws ServiceException {
+		try {
+			return clientDao.countAllClients();
+		} catch (Exception e) {
+			throw new ServiceException(e.getMessage());
+		}
+	}
 	
 }
