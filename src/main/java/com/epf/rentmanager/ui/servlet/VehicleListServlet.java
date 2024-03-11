@@ -1,6 +1,9 @@
 package com.epf.rentmanager.ui.servlet;
 
+import com.epf.rentmanager.configuration.AppConfiguration;
 import com.epf.rentmanager.service.VehicleService;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.IOException;
 
@@ -13,11 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/cars")
 public class VehicleListServlet extends HttpServlet {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
-    private VehicleService vehicleService = VehicleService.getInstance();
+    ApplicationContext context = new AnnotationConfigApplicationContext(AppConfiguration.class);
+    private VehicleService vehicleService = context.getBean(VehicleService.class);
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
