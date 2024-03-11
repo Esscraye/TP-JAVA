@@ -1,5 +1,6 @@
 package com.epf.rentmanager.ui.cli;
 
+import com.epf.rentmanager.configuration.AppConfiguration;
 import com.epf.rentmanager.exception.ServiceException;
 import com.epf.rentmanager.model.Client;
 import com.epf.rentmanager.model.Vehicle;
@@ -8,12 +9,24 @@ import com.epf.rentmanager.service.VehicleService;
 import com.epf.rentmanager.model.Reservation;
 import com.epf.rentmanager.service.ReservationService;
 import com.epf.rentmanager.utils.IOUtils;
-
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 
 public class Main {
 
+    ApplicationContext context = new AnnotationConfigApplicationContext(AppConfiguration.class);
+    
+    private ClientService clientService = context.getBean(ClientService.class);
+    private VehicleService vehicleService = context.getBean(VehicleService.class);
+    private ReservationService reservationService = context.getBean(ReservationService.class);
+    
     public static void main(String[] args) {
+        Main main = new Main();
+        main.run();
+    }
+    
+    public void run() {
         System.out.println("Bienvenue dans RentManager !");
         System.out.println("Que souhaitez-vous faire ?");
         System.out.println("1. Créer un client");
@@ -71,7 +84,7 @@ public class Main {
         }
     }
 
-    private static void createClient() {
+    private void createClient() {
         Client client = new Client(
             0,
             IOUtils.readString("Nom : ", true),
@@ -80,16 +93,16 @@ public class Main {
             IOUtils.readDate("Date de naissance (jj/mm/aaaa) : ", true)
         );
         try {
-            ClientService.getInstance().create(client);
+            clientService.create(client);
             System.out.println("Client créé avec succès !");
         } catch (ServiceException e) {
             System.out.println("Erreur lors de la création du client : " + e.getMessage());
         }
     }
 
-    private static void listClients() {
+    private  void listClients() {
         try {
-            for(Client client : ClientService.getInstance().findAll()) {
+            for(Client client : clientService.findAll()) {
                 System.out.println(client.id() + " - " + client.nom() + " " + client.prenom() + " (" + client.email() + ")");
             }
         } catch (ServiceException e) {
@@ -97,7 +110,7 @@ public class Main {
         }
     }
 
-    private static void createVehicle() {
+    private  void createVehicle() {
         Vehicle vehicle = new Vehicle(
             0,
             IOUtils.readString("Constructeur : ", true),
@@ -105,16 +118,16 @@ public class Main {
             IOUtils.readInt("Nombre de places : ")
         );
         try {
-            VehicleService.getInstance().create(vehicle);
+            vehicleService.create(vehicle);
             System.out.println("Véhicule créé avec succès !");
         } catch (ServiceException e) {
             System.out.println("Erreur lors de la création du véhicule : " + e.getMessage());
         }
     }
 
-    private static void listVehicles() {
+    private  void listVehicles() {
         try {
-            for(Vehicle vehicle : VehicleService.getInstance().findAll()) {
+            for(Vehicle vehicle : vehicleService.findAll()) {
                 System.out.println(vehicle.id() + " - " + vehicle.constructeur() + " - " + vehicle.modele() + " - " + " (" + vehicle.nbPlaces() + " places)");
             }
         } catch (ServiceException e) {
@@ -122,22 +135,22 @@ public class Main {
         }
     }
 
-    private static void deleteClient() {
+    private  void deleteClient() {
         long id = IOUtils.readInt("ID du client à supprimer : ");
         try {
-            Client client = ClientService.getInstance().findById(id);
-            ClientService.getInstance().delete(client);
+            Client client = clientService.findById(id);
+            clientService.delete(client);
             System.out.println("Client supprimé avec succès !");
         } catch (ServiceException e) {
             System.out.println("Erreur lors de la suppression du client : " + e.getMessage());
         }
     }
 
-    private static void deleteVehicle() {
+    private  void deleteVehicle() {
         long id = IOUtils.readInt("ID du véhicule à supprimer : ");
         try {
-            Vehicle vehicle = VehicleService.getInstance().findById(id);
-            VehicleService.getInstance().delete(vehicle);
+            Vehicle vehicle = vehicleService.findById(id);
+            vehicleService.delete(vehicle);
             System.out.println("Véhicule supprimé avec succès !");
         } catch (ServiceException e) {
             System.out.println("Erreur lors de la suppression du véhicule : " + e.getMessage());
@@ -145,7 +158,7 @@ public class Main {
     }
 
     // reservation
-    private static void createReservation() {
+    private  void createReservation() {
         Reservation reservation = new Reservation(
             0,
             IOUtils.readInt("ID du client : "),
@@ -154,16 +167,16 @@ public class Main {
             IOUtils.readDate("Date de fin (jj/mm/aaaa) : ", true)
         );
         try {
-            ReservationService.getInstance().create(reservation);
+            reservationService.create(reservation);
             System.out.println("Réservation créée avec succès !");
         } catch (ServiceException e) {
             System.out.println("Erreur lors de la création de la réservation : " + e.getMessage());
         }
     }
 
-    private static void listReservations() {
+    private  void listReservations() {
         try {
-            for(Reservation reservation : ReservationService.getInstance().findAll()) {
+            for(Reservation reservation : reservationService.findAll()) {
                 System.out.println(reservation.id() + " - " + reservation.debut() + " - " + reservation.fin());
             }
         } catch (ServiceException e) {
@@ -171,21 +184,21 @@ public class Main {
         }
     }
 
-    private static void deleteReservation() {
+    private  void deleteReservation() {
         long id = IOUtils.readInt("ID de la réservation à supprimer : ");
         try {
-            Reservation reservation = ReservationService.getInstance().findById(id);
-            ReservationService.getInstance().delete(reservation);
+            Reservation reservation = reservationService.findById(id);
+            reservationService.delete(reservation);
             System.out.println("Réservation supprimée avec succès !");
         } catch (ServiceException e) {
             System.out.println("Erreur lors de la suppression de la réservation : " + e.getMessage());
         }
     }
 
-    private static void listResaByVehicleId() {
+    private  void listResaByVehicleId() {
         long id = IOUtils.readInt("ID du véhicule : ");
         try {
-            for(Reservation reservation : ReservationService.getInstance().findResaByVehicleId(id)) {
+            for(Reservation reservation : reservationService.findResaByVehicleId(id)) {
                 System.out.println(reservation.id() + " - " + reservation.debut() + " - " + reservation.fin());
             }
         } catch (ServiceException e) {
@@ -193,10 +206,10 @@ public class Main {
         }
     }
 
-    private static void listResaByClientId() {
+    private  void listResaByClientId() {
         long id = IOUtils.readInt("ID du client : ");
         try {
-            for(Reservation reservation : ReservationService.getInstance().findResaByClientId(id)) {
+            for(Reservation reservation : reservationService.findResaByClientId(id)) {
                 System.out.println(reservation.id() + " - " + reservation.debut() + " - " + reservation.fin());
             }
         } catch (ServiceException e) {

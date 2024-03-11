@@ -1,11 +1,14 @@
 package com.epf.rentmanager.ui.servlet;
 
+import com.epf.rentmanager.configuration.AppConfiguration;
 import com.epf.rentmanager.model.Client;
 import com.epf.rentmanager.model.Reservation;
 import com.epf.rentmanager.model.Vehicle;
 import com.epf.rentmanager.service.VehicleService;
 import com.epf.rentmanager.service.ReservationService;
 import com.epf.rentmanager.service.ClientService;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -21,10 +24,10 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/rents/create")
 public class ReservationCreateServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-
-    private VehicleService vehicleService = VehicleService.getInstance();
-    private ReservationService reservationService = ReservationService.getInstance();
-    private ClientService clientService = ClientService.getInstance();
+    ApplicationContext context = new AnnotationConfigApplicationContext(AppConfiguration.class);
+    private VehicleService vehicleService = context.getBean(VehicleService.class);
+    private ReservationService reservationService = context.getBean(ReservationService.class);
+    private ClientService clientService = context.getBean(ClientService.class);
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
