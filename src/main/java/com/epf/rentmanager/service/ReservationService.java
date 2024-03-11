@@ -3,6 +3,7 @@ package com.epf.rentmanager.service;
 import java.util.List;
 
 import com.epf.rentmanager.dto.ReservationDto;
+import com.epf.rentmanager.dto.ReservationFullDto;
 import com.epf.rentmanager.exception.DaoException;
 import com.epf.rentmanager.exception.ServiceException;
 import com.epf.rentmanager.model.Reservation;
@@ -53,6 +54,14 @@ public class ReservationService {
     public List<Reservation> findAll() throws ServiceException {
         try {
             return reservationDao.findAll();
+        } catch (DaoException e) {
+            throw new ServiceException(e.getMessage());
+        }
+    }
+
+    public List<ReservationFullDto> findAllFull() throws ServiceException {
+        try {
+            return reservationDao.findAllFull();
         } catch (DaoException e) {
             throw new ServiceException(e.getMessage());
         }

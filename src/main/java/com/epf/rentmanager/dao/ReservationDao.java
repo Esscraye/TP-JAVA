@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.epf.rentmanager.dto.ReservationDto;
+import com.epf.rentmanager.dto.ReservationFullDto;
 import com.epf.rentmanager.exception.DaoException;
+import com.epf.rentmanager.model.Client;
 import com.epf.rentmanager.model.Reservation;
 import com.epf.rentmanager.model.Vehicle;
 import com.epf.rentmanager.persistence.ConnectionManager;
@@ -32,6 +34,7 @@ public class ReservationDao {
 	private static final String FIND_RESERVATIONS_BY_CLIENT_QUERY = "SELECT id, vehicle_id, debut, fin FROM Reservation WHERE client_id=?;";
 	private static final String FIND_RESERVATIONS_BY_VEHICLE_QUERY = "SELECT id, client_id, debut, fin FROM Reservation WHERE vehicle_id=?;";
 	private static final String FIND_RESERVATIONS_QUERY = "SELECT id, client_id, vehicle_id, debut, fin FROM Reservation;";
+	private static final String FIND_RESERVATIONS_FULL_QUERY = "SELECT * FROM Reservation r JOIN Vehicle v ON r.vehicle_id = v.id JOIN Client c ON r.client_id = c.id;";
 	private static final String COUNT_ALL_RESERVATION = "SELECT COUNT(*) FROM Reservation;";
 	private static final String COUNT_ALL_RESERVATION_BY_CLIENT = "SELECT COUNT(*) FROM Reservation WHERE client_id=?;";
 	private static final String COUNT_DISTINCT_VEHICLES_BY_CLIENT_QUERY = "SELECT COUNT(DISTINCT vehicle_id) FROM Reservation WHERE client_id=?;";
@@ -128,6 +131,41 @@ public class ReservationDao {
 					resultSet.getDate(5).toLocalDate()
 				);
 				reservations.add(reservation);
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		return reservations;
+	}
+
+	public List<ReservationFullDto> findAllFull() throws DaoException {
+		List<ReservationFullDto> reservations = new ArrayList<ReservationFullDto>();
+		try {
+			Connection connection = ConnectionManager.getConnection();
+			Statement stmt = connection.createStatement();
+			ResultSet resultSet = stmt.executeQuery(FIND_RESERVATIONS_FULL_QUERY);
+			while (resultSet.next()) {
+				Reservation reservation = new Reservation(
+					resultSet.getLong("id"),
+					resultSet.getLong("client_id"),
+					resultSet.getLong("vehicle_id"),
+					resultSet.getDate("debut").toLocalDate(),
+					resultSet.getDate("fin").toLocalDate()
+				);
+				Vehicle vehicle = new Vehicle(
+					resultSet.getLong("vehicle_id"),
+					resultSet.getString("constructeur"),
+					resultSet.getString("modele"),
+					resultSet.getInt("nb_places")
+				);
+				Client client = new Client(
+					resultSet.getLong("client_id"),
+					resultSet.getString("nom"),
+					resultSet.getString("prenom"),
+					resultSet.getString("email"),
+					resultSet.getDate("naissance").toLocalDate()
+				);
+				reservations.add(new ReservationFullDto(reservation, vehicle, client));
 			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
