@@ -49,7 +49,7 @@
                                             <a class="btn btn-success disabled" href="#">
                                                 <i class="fa fa-edit"></i>
                                             </a>
-                                            <a class="btn btn-danger disabled" href="#">
+                                            <a class="btn btn-danger" href="${pageContext.request.contextPath}/users/delete?id=${client.id()}">
                                                 <i class="fa fa-trash"></i>
                                             </a>
                                         </td>

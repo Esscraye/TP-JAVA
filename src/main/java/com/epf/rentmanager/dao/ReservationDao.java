@@ -36,6 +36,7 @@ public class ReservationDao {
 	private static final String FIND_RESERVATIONS_BY_CLIENT_QUERY = "SELECT id, vehicle_id, debut, fin FROM Reservation WHERE client_id=?;";
 	private static final String FIND_RESERVATIONS_BY_VEHICLE_QUERY = "SELECT id, client_id, debut, fin FROM Reservation WHERE vehicle_id=?;";
 	private static final String FIND_RESERVATIONS_QUERY = "SELECT id, client_id, vehicle_id, debut, fin FROM Reservation;";
+	private static final String FIND_UNIQUE_RESERVATION_QUERY = "SELECT * FROM Reservation WHERE id=?;";
 	private static final String FIND_RESERVATIONS_FULL_QUERY = "SELECT * FROM Reservation r JOIN Vehicle v ON r.vehicle_id = v.id JOIN Client c ON r.client_id = c.id;";
 	private static final String COUNT_ALL_RESERVATION = "SELECT COUNT(*) FROM Reservation;";
 	private static final String COUNT_ALL_RESERVATION_BY_CLIENT = "SELECT COUNT(*) FROM Reservation WHERE client_id=?;";
@@ -63,16 +64,17 @@ public class ReservationDao {
 	
 	public long delete(Reservation reservation) throws DaoException {
 		long id = 0;
+		if (reservation == null) {
+			throw new DaoException("Cannot delete null reservation");
+		}
 		try {
 			Connection connection = ConnectionManager.getConnection();
 			PreparedStatement stmt = connection.prepareStatement(DELETE_RESERVATION_QUERY);
 			stmt.setLong(1, reservation.id());
-			stmt.executeUpdate();
-			id = stmt.getGeneratedKeys().getInt(1);
+			return stmt.executeUpdate();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
-		return id;
 	}
 
 	
@@ -178,7 +180,7 @@ public class ReservationDao {
 	public Reservation findById(long id) throws DaoException {
 		try {
 			Connection connection = ConnectionManager.getConnection();
-			PreparedStatement stmt = connection.prepareStatement(FIND_RESERVATIONS_QUERY);
+			PreparedStatement stmt = connection.prepareStatement(FIND_UNIQUE_RESERVATION_QUERY);
 			stmt.setLong(1, id);
 			ResultSet resultSet = stmt.executeQuery();
 			if(resultSet.next()) {
