@@ -6,8 +6,10 @@ import java.time.LocalDate;
 import com.epf.rentmanager.configuration.AppConfiguration;
 import com.epf.rentmanager.model.Client;
 import com.epf.rentmanager.service.ClientService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,10 +19,16 @@ import javax.servlet.http.HttpServletResponse;
 
 @WebServlet("/users/create")
 public class ClientCreateServlet extends HttpServlet {
-
     private static final long serialVersionUID = 1L;
-    ApplicationContext context = new AnnotationConfigApplicationContext(AppConfiguration.class);
-    private ClientService clientService = context.getBean(ClientService.class);
+
+    @Autowired
+    ClientService clientService;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+    }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

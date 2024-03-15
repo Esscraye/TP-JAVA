@@ -2,8 +2,10 @@ package com.epf.rentmanager.ui.servlet;
 
 import com.epf.rentmanager.configuration.AppConfiguration;
 import com.epf.rentmanager.service.VehicleService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import java.io.IOException;
 
@@ -17,8 +19,15 @@ import javax.servlet.http.HttpServletResponse;
 public class VehicleListServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-    ApplicationContext context = new AnnotationConfigApplicationContext(AppConfiguration.class);
-    private VehicleService vehicleService = context.getBean(VehicleService.class);
+
+    @Autowired
+    VehicleService vehicleService;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+    }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

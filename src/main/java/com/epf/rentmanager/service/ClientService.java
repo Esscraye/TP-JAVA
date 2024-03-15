@@ -6,6 +6,7 @@ import java.util.List;
 import com.epf.rentmanager.dao.ClientDao;
 import com.epf.rentmanager.exception.ServiceException;
 import com.epf.rentmanager.model.Client;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,7 +14,8 @@ public class ClientService {
 
 	private ClientDao clientDao;
 	public static ClientService instance;
-	
+
+	@Autowired
 	private ClientService(ClientDao clientDao) {
 		this.clientDao = clientDao;
 	}
