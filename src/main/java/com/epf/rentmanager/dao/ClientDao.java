@@ -33,6 +33,7 @@ public class ClientDao {
 	private static final String FIND_CLIENT_QUERY = "SELECT nom, prenom, email, naissance FROM Client WHERE id=?;";
 	private static final String FIND_CLIENTS_QUERY = "SELECT id, nom, prenom, email, naissance FROM Client;";
 	private static final String COUNT_ALL_CLIENTS = "SELECT COUNT(*) FROM Client;";
+	private static final String UPDATE_CLIENT_QUERY = "UPDATE Client SET nom=?, prenom=?, email=?, naissance=? WHERE id=?;";
 	
 	public long create(Client client) throws DaoException {
     long id = 0;
@@ -63,6 +64,27 @@ public class ClientDao {
 			Connection connection = ConnectionManager.getConnection();
 			PreparedStatement stmt = connection.prepareStatement(DELETE_CLIENT_QUERY);
 			stmt.setLong(1, client.id());
+			return stmt.executeUpdate();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public long update(Long id, String nom, String prenom, String email, LocalDate naissance) throws DaoException {
+		try {
+			// Vérifier si le client existe
+			Client existingClient = findById(id);
+			if (existingClient == null) {
+				throw new DaoException("Client with id " + id + " does not exist.");
+			}
+
+			Connection connection = ConnectionManager.getConnection();
+			PreparedStatement stmt = connection.prepareStatement(UPDATE_CLIENT_QUERY);
+			stmt.setString(1, nom);
+			stmt.setString(2, prenom);
+			stmt.setString(3, email);
+			stmt.setDate(4, Date.valueOf(naissance));
+			stmt.setLong(5, id);
 			return stmt.executeUpdate();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
