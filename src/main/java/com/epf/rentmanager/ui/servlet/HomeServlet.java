@@ -12,19 +12,29 @@ import com.epf.rentmanager.configuration.AppConfiguration;
 import com.epf.rentmanager.service.ReservationService;
 import com.epf.rentmanager.service.VehicleService;
 import com.epf.rentmanager.service.ClientService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 
 @WebServlet("/home")
 public class HomeServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	ApplicationContext context = new AnnotationConfigApplicationContext(AppConfiguration.class);
 
-	private VehicleService vehicleService = context.getBean(VehicleService.class);
-	private ClientService clientService = context.getBean(ClientService.class);
-	private ReservationService reservationService = context.getBean(ReservationService.class);
+	@Autowired
+	ClientService clientService;
+	@Autowired
+	VehicleService vehicleService;
+	@Autowired
+	ReservationService reservationService;
+
+	@Override
+    public void init() throws ServletException {
+        super.init();
+        SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+    }
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
