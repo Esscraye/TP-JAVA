@@ -1,5 +1,6 @@
 package com.epf.rentmanager.service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,9 +35,16 @@ public class ClientService {
 	}
 
 	public long delete(Client client) throws ServiceException {
-		// TODO: supprimer un client
 		try {
 			return clientDao.delete(client);
+		} catch (Exception e) {
+			throw new ServiceException(e.getMessage());
+		}
+	}
+
+	public long update(Long id, String nom, String prenom, String email, LocalDate naissance) throws ServiceException {
+		try {
+			return clientDao.update(id, nom, prenom, email, naissance);
 		} catch (Exception e) {
 			throw new ServiceException(e.getMessage());
 		}

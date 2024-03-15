@@ -43,6 +43,14 @@ public class VehicleService {
 		}
 	}
 
+	public long update(Long id, String constructeur, String modele, int nb_places) throws ServiceException {
+		try {
+			return vehicleDao.update(id, constructeur, modele, nb_places);
+		} catch (DaoException e) {
+			throw new ServiceException(e.getMessage());
+		}
+	}
+
 	public Vehicle findById(long id) throws ServiceException {
 		// TODO: récupérer un véhicule par son id
 		try {
