@@ -10,10 +10,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Serial;
 import java.time.LocalDate;
 
 @WebServlet("/users/edit")
 public class ClientEditServlet extends HttpServlet {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     @Autowired
@@ -25,10 +27,9 @@ public class ClientEditServlet extends HttpServlet {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
     }
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            Long id = Long.parseLong(request.getParameter("id"));
+            long id = Long.parseLong(request.getParameter("id"));
             request.setAttribute("id", id);
             request.setAttribute("client", clientService.findById(id));
         } catch (Exception e) {
@@ -37,8 +38,7 @@ public class ClientEditServlet extends HttpServlet {
         this.getServletContext().getRequestDispatcher("/WEB-INF/views/users/edit.jsp").forward(request, response);
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             Long id = Long.parseLong(request.getParameter("id"));
 
