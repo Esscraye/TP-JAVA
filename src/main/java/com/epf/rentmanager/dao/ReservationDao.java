@@ -37,6 +37,9 @@ public class ReservationDao {
                 FROM Reservation r JOIN Vehicle v ON r.vehicle_id = v.id
                 WHERE r.client_id=?;
             """;
+    private static final String CHECK_VEHICLE_RESERVED_SAME_DAY_QUERY = "SELECT COUNT(*) FROM Reservation WHERE vehicle_id=? AND debut<=? AND fin>=?";
+    private static final String CHECK_VEHICLE_RESERVED_CONSECUTIVE_DAYS_BY_SAME_CLIENT_QUERY = "SELECT MAX(fin) FROM Reservation WHERE vehicle_id=? AND client_id=? AND fin<=?";
+    private static final String CHECK_VEHICLE_RESERVED_CONSECUTIVE_DAYS_WITHOUT_BREAK_QUERY = "SELECT MAX(fin) FROM Reservation WHERE vehicle_id=? AND fin<=?";
 
     private ReservationDao() {
     }
@@ -60,18 +63,63 @@ public class ReservationDao {
         long id = 0;
         try {
             Connection connection = ConnectionManager.getConnection();
-            PreparedStatement stmt = connection.prepareStatement(CREATE_RESERVATION_QUERY, Statement.RETURN_GENERATED_KEYS);
-            stmt.setLong(1, reservation.clientId());
-            stmt.setLong(2, reservation.vehicleId());
-            stmt.setDate(3, Date.valueOf(reservation.debut()));
-            stmt.setDate(4, Date.valueOf(reservation.fin()));
-            stmt.executeUpdate();
-            ResultSet resultSet = stmt.getGeneratedKeys();
-            if (resultSet.next()) {
-                id = resultSet.getLong(1);
-            }
+
+            checkVehicleReservedSameDay(connection, reservation);
+
+            checkVehicleReservedConsecutiveDaysBySameClient(connection, reservation);
+
+            checkVehicleReservedConsecutiveDaysWithoutBreak(connection, reservation);
+
+            id = createReservation(connection, reservation);
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+        return id;
+    }
+
+    private void checkVehicleReservedSameDay(Connection connection, Reservation reservation) throws SQLException, DaoException {
+        PreparedStatement stmt = connection.prepareStatement(CHECK_VEHICLE_RESERVED_SAME_DAY_QUERY);
+        stmt.setLong(1, reservation.vehicleId());
+        stmt.setDate(2, Date.valueOf(reservation.debut()));
+        stmt.setDate(3, Date.valueOf(reservation.debut()));
+        ResultSet resultSet = stmt.executeQuery();
+        if (resultSet.next() && resultSet.getInt(1) > 0) {
+            throw new DaoException("Vehicle is already reserved on this day");
+        }
+    }
+
+    private void checkVehicleReservedConsecutiveDaysBySameClient(Connection connection, Reservation reservation) throws SQLException, DaoException {
+        PreparedStatement stmt = connection.prepareStatement(CHECK_VEHICLE_RESERVED_CONSECUTIVE_DAYS_BY_SAME_CLIENT_QUERY);
+        stmt.setLong(1, reservation.vehicleId());
+        stmt.setLong(2, reservation.clientId());
+        stmt.setDate(3, Date.valueOf(reservation.debut().plusDays(7)));
+        ResultSet resultSet = stmt.executeQuery();
+        if (resultSet.next() && resultSet.getDate(1) != null && !resultSet.getDate(1).toLocalDate().isBefore(reservation.debut())) {
+            throw new DaoException("Vehicle cannot be reserved for more than 7 consecutive days by the same client");
+        }
+    }
+
+    private void checkVehicleReservedConsecutiveDaysWithoutBreak(Connection connection, Reservation reservation) throws SQLException, DaoException {
+        PreparedStatement stmt = connection.prepareStatement(CHECK_VEHICLE_RESERVED_CONSECUTIVE_DAYS_WITHOUT_BREAK_QUERY);
+        stmt.setLong(1, reservation.vehicleId());
+        stmt.setDate(2, Date.valueOf(reservation.debut().plusDays(30)));
+        ResultSet resultSet = stmt.executeQuery();
+        if (resultSet.next() && resultSet.getDate(1) != null && !resultSet.getDate(1).toLocalDate().isBefore(reservation.debut())) {
+            throw new DaoException("Vehicle cannot be reserved for 30 consecutive days without a break");
+        }
+    }
+
+    private long createReservation(Connection connection, Reservation reservation) throws SQLException {
+        long id = 0;
+        PreparedStatement stmt = connection.prepareStatement(CREATE_RESERVATION_QUERY, Statement.RETURN_GENERATED_KEYS);
+        stmt.setLong(1, reservation.clientId());
+        stmt.setLong(2, reservation.vehicleId());
+        stmt.setDate(3, Date.valueOf(reservation.debut()));
+        stmt.setDate(4, Date.valueOf(reservation.fin()));
+        stmt.executeUpdate();
+        ResultSet resultSet = stmt.getGeneratedKeys();
+        if (resultSet.next()) {
+            id = resultSet.getLong(1);
         }
         return id;
     }
@@ -90,7 +138,7 @@ public class ReservationDao {
         }
     }
 
-    public long update(Reservation reservation) throws DaoException {
+    public void update(Reservation reservation) throws DaoException {
         try {
             Connection connection = ConnectionManager.getConnection();
             PreparedStatement stmt = connection.prepareStatement(UPDATE_RESERVATION_QUERY);
@@ -99,7 +147,7 @@ public class ReservationDao {
             stmt.setDate(3, Date.valueOf(reservation.debut()));
             stmt.setDate(4, Date.valueOf(reservation.fin()));
             stmt.setLong(5, reservation.id());
-            return stmt.executeUpdate();
+            stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

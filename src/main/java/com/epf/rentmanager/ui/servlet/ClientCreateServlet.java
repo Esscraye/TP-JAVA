@@ -1,5 +1,6 @@
 package com.epf.rentmanager.ui.servlet;
 
+import com.epf.rentmanager.exception.DaoException;
 import com.epf.rentmanager.model.Client;
 import com.epf.rentmanager.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +45,10 @@ public class ClientCreateServlet extends HttpServlet {
             clientService.create(newClient);
             response.sendRedirect(request.getContextPath() + "/users");
         } catch (com.epf.rentmanager.exception.ServiceException e) {
-            e.printStackTrace();
+            request.setAttribute("error", e.getMessage());
+            this.getServletContext().getRequestDispatcher("/WEB-INF/views/users/create.jsp").forward(request, response);
+        } catch (DaoException e) {
+            throw new RuntimeException(e);
         }
     }
 }

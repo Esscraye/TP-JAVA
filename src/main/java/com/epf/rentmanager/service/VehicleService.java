@@ -21,15 +21,17 @@ public class VehicleService {
     }
 
     public long create(Vehicle vehicle) throws ServiceException {
-        if (vehicle.constructeur().isEmpty() || vehicle.nbPlaces() < 1) {
-            throw new ServiceException("Le constructeur et le nombre de places du véhicule sont obligatoires");
-        }
-        try {
-            return vehicleDao.create(vehicle);
-        } catch (DaoException e) {
-            throw new ServiceException(e.getMessage());
-        }
+    if (vehicle == null || vehicle.constructeur() == null || vehicle.constructeur().isEmpty() ||
+        vehicle.modele() == null || vehicle.modele().isEmpty() ||
+        vehicle.nbPlaces() < 2 || vehicle.nbPlaces() > 9) {
+        throw new ServiceException("Invalid vehicle data");
     }
+    try {
+        return vehicleDao.create(vehicle);
+    } catch (DaoException e) {
+        throw new ServiceException(e.getMessage());
+    }
+}
 
     public long delete(Vehicle vehicle) throws ServiceException {
         try {
@@ -40,6 +42,9 @@ public class VehicleService {
     }
 
     public void update(Vehicle vehicle) throws ServiceException {
+        if (vehicle.constructeur() == null || vehicle.modele() == null || vehicle.nbPlaces() < 2 || vehicle.nbPlaces() > 9) {
+            throw new ServiceException("Invalid vehicle data");
+        }
         try {
             vehicleDao.update(vehicle);
         } catch (DaoException e) {
