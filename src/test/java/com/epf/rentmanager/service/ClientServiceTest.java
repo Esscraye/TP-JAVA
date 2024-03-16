@@ -59,11 +59,11 @@ public class ClientServiceTest {
 
     @Test
     public void update_existing_client() throws ServiceException, DaoException {
-        doNothing().when(clientDao).update(anyLong(), anyString(), anyString(), anyString(), any(LocalDate.class));
+        doNothing().when(clientDao).update(any(Client.class));
 
-        clientService.update(1L, "Doe", "John", "john.doe@example.com", LocalDate.now());
+        clientService.update(new Client(1L, "Doe", "John", "johjohn.doe@example.com", LocalDate.now()));
 
-        verify(clientDao, times(1)).update(1L, "Doe", "John", "john.doe@example.com", LocalDate.now());
+        verify(clientDao, times(1)).update(any(Client.class));
     }
 
     @Test

@@ -28,7 +28,7 @@ public class VehicleServiceTest {
     private VehicleService vehicleService;
 
     @Test
-    public void createVehicleWithValidData() throws ServiceException, DaoException {
+    public void create_vehicle_with_validData() throws ServiceException, DaoException {
         Vehicle vehicle = new Vehicle(1L, "Tesla", "Model S", 5);
         when(vehicleDao.create(any(Vehicle.class))).thenReturn(1L);
 
@@ -39,14 +39,14 @@ public class VehicleServiceTest {
     }
 
     @Test
-    public void createVehicleWithEmptyConstructor() {
+    public void create_vehicle_with_empty_constructor() {
         Vehicle vehicle = new Vehicle(1L, "", "Model S", 5);
 
         assertThrows(ServiceException.class, () -> vehicleService.create(vehicle));
     }
 
     @Test
-    public void deleteExistingVehicle() throws ServiceException, DaoException {
+    public void delete_existing_vehicle() throws ServiceException, DaoException {
         Vehicle vehicle = new Vehicle(1L, "Tesla", "Model S", 5);
         when(vehicleDao.delete(vehicle)).thenReturn(1L);
 
@@ -57,16 +57,16 @@ public class VehicleServiceTest {
     }
 
     @Test
-    public void updateExistingVehicle() throws ServiceException, DaoException {
-        doNothing().when(vehicleDao).update(anyLong(), anyString(), anyString(), anyInt());
+    public void update_existing_vehicle() throws ServiceException, DaoException {
+        doNothing().when(vehicleDao).update(any(Vehicle.class));
 
-        vehicleService.update(1L, "Tesla", "Model S", 5);
+        vehicleService.update(new Vehicle(1, "Tesla", "Model S", 5));
 
-        verify(vehicleDao, times(1)).update(1L, "Tesla", "Model S", 5);
+        verify(vehicleDao, times(1)).update(any(Vehicle.class));
     }
 
     @Test
-    public void findVehicleById() throws ServiceException, DaoException {
+    public void find_vehicle_by_id() throws ServiceException, DaoException {
         Vehicle vehicle = new Vehicle(1L, "Tesla", "Model S", 5);
         when(vehicleDao.findById(1L)).thenReturn(Optional.of(vehicle));
 
@@ -77,7 +77,7 @@ public class VehicleServiceTest {
     }
 
     @Test
-    public void findAllVehicles() throws ServiceException, DaoException {
+    public void find_all_vehicles() throws ServiceException, DaoException {
         List<Vehicle> vehicles = Arrays.asList(new Vehicle(1L, "Tesla", "Model S", 5), new Vehicle(2L, "BMW", "i8", 2));
         when(vehicleDao.findAll()).thenReturn(vehicles);
 
@@ -88,7 +88,7 @@ public class VehicleServiceTest {
     }
 
     @Test
-    public void countAllVehicles() throws ServiceException, DaoException {
+    public void count_all_vehicles() throws ServiceException, DaoException {
         when(vehicleDao.countAllVehicles()).thenReturn(2);
 
         int result = vehicleService.countAllVehicles();
@@ -98,7 +98,7 @@ public class VehicleServiceTest {
     }
 
     @Test
-    public void findVehiclesByClient() throws ServiceException, DaoException {
+    public void find_vehicles_by_client() throws ServiceException, DaoException {
         List<Vehicle> vehicles = Arrays.asList(new Vehicle(1L, "Tesla", "Model S", 5), new Vehicle(2L, "BMW", "i8", 2));
         when(vehicleDao.findVehiclesByClient(1L)).thenReturn(vehicles);
 

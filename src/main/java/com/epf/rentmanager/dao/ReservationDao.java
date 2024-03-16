@@ -90,7 +90,7 @@ public class ReservationDao {
         }
     }
 
-    public long update(Reservation reservation) throws DaoException {
+    public void update(Reservation reservation) throws DaoException {
         try {
             Connection connection = ConnectionManager.getConnection();
             PreparedStatement stmt = connection.prepareStatement(UPDATE_RESERVATION_QUERY);
@@ -99,7 +99,7 @@ public class ReservationDao {
             stmt.setDate(3, Date.valueOf(reservation.debut()));
             stmt.setDate(4, Date.valueOf(reservation.fin()));
             stmt.setLong(5, reservation.id());
-            return stmt.executeUpdate();
+            stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
