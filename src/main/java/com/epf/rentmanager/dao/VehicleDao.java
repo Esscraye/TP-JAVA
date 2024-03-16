@@ -57,14 +57,14 @@ public class VehicleDao {
         }
     }
 
-    public void update(Long id, String constructeur, String modele, int nb_places) throws DaoException {
+    public void update(Vehicle vehicle) throws DaoException {
         try {
             Connection connection = ConnectionManager.getConnection();
             PreparedStatement stmt = connection.prepareStatement(UPDATE_VEHICLE_QUERY);
-            stmt.setString(1, constructeur);
-            stmt.setString(2, modele);
-            stmt.setInt(3, nb_places);
-            stmt.setLong(4, id);
+            stmt.setString(1, vehicle.constructeur());
+            stmt.setString(2, vehicle.modele());
+            stmt.setInt(3, vehicle.nbPlaces());
+            stmt.setLong(4, vehicle.id());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);

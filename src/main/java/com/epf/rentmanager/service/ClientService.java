@@ -40,9 +40,9 @@ public class ClientService {
         }
     }
 
-    public void update(Long id, String nom, String prenom, String email, LocalDate naissance) throws ServiceException {
+    public void update(Client client) throws ServiceException {
         try {
-            clientDao.update(id, nom, prenom, email, naissance);
+            clientDao.update(client);
         } catch (Exception e) {
             throw new ServiceException(e.getMessage());
         }

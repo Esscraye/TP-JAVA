@@ -19,24 +19,41 @@ public class ReservationDao {
 
     private static final String CREATE_RESERVATION_QUERY = "INSERT INTO Reservation(client_id, vehicle_id, debut, fin) VALUES(?, ?, ?, ?);";
     private static final String DELETE_RESERVATION_QUERY = "DELETE FROM Reservation WHERE id=?;";
+    private static final String UPDATE_RESERVATION_QUERY = "UPDATE Reservation SET client_id=?, vehicle_id=?, debut=?, fin=? WHERE id=?;";
     private static final String FIND_RESERVATIONS_BY_CLIENT_QUERY = "SELECT id, vehicle_id, debut, fin FROM Reservation WHERE client_id=?;";
     private static final String FIND_RESERVATIONS_BY_VEHICLE_QUERY = "SELECT id, client_id, debut, fin FROM Reservation WHERE vehicle_id=?;";
     private static final String FIND_RESERVATIONS_QUERY = "SELECT id, client_id, vehicle_id, debut, fin FROM Reservation;";
     private static final String FIND_UNIQUE_RESERVATION_QUERY = "SELECT * FROM Reservation WHERE id=?;";
     private static final String FIND_RESERVATIONS_FULL_QUERY = """
-			SELECT * FROM Vehicle v
-			JOIN Reservation r  ON r.vehicle_id = v.id
-			JOIN Client c ON r.client_id = c.id;
-		""";
+                SELECT * FROM Reservation r
+                JOIN Vehicle v  ON r.vehicle_id = v.id
+                JOIN Client c ON r.client_id = c.id;
+            """;
     private static final String COUNT_ALL_RESERVATION = "SELECT COUNT(*) FROM Reservation;";
     private static final String COUNT_ALL_RESERVATION_BY_CLIENT = "SELECT COUNT(*) FROM Reservation WHERE client_id=?;";
     private static final String COUNT_DISTINCT_VEHICLES_BY_CLIENT_QUERY = "SELECT COUNT(DISTINCT vehicle_id) FROM Reservation WHERE client_id=?;";
     private static final String FIND_RESERVATIONS_BY_CLIENT_WITH_VEHICLE = """
-			SELECT r.id, r.client_id, r.vehicle_id, v.constructeur, v.modele, v.nb_places, r.debut, r.fin
-			FROM Reservation r JOIN Vehicle v ON r.vehicle_id = v.id
-			WHERE r.client_id=?;
-		""";
+                SELECT r.id, r.client_id, r.vehicle_id, v.constructeur, v.modele, v.nb_places, r.debut, r.fin
+                FROM Reservation r JOIN Vehicle v ON r.vehicle_id = v.id
+                WHERE r.client_id=?;
+            """;
+
     private ReservationDao() {
+    }
+
+    private int countById(long clientId, String countAllReservationByClient) {
+        try {
+            Connection connection = ConnectionManager.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(countAllReservationByClient);
+            stmt.setLong(1, clientId);
+            ResultSet resultSet = stmt.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return 0;
     }
 
     public long create(Reservation reservation) throws DaoException {
@@ -67,6 +84,21 @@ public class ReservationDao {
             Connection connection = ConnectionManager.getConnection();
             PreparedStatement stmt = connection.prepareStatement(DELETE_RESERVATION_QUERY);
             stmt.setLong(1, reservation.id());
+            return stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long update(Reservation reservation) throws DaoException {
+        try {
+            Connection connection = ConnectionManager.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(UPDATE_RESERVATION_QUERY);
+            stmt.setLong(1, reservation.clientId());
+            stmt.setLong(2, reservation.vehicleId());
+            stmt.setDate(3, Date.valueOf(reservation.debut()));
+            stmt.setDate(4, Date.valueOf(reservation.fin()));
+            stmt.setLong(5, reservation.id());
             return stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -169,33 +201,11 @@ public class ReservationDao {
     }
 
     public int countAllReservationsByClient(long clientId) throws DaoException {
-        try {
-            Connection connection = ConnectionManager.getConnection();
-            PreparedStatement stmt = connection.prepareStatement(COUNT_ALL_RESERVATION_BY_CLIENT);
-            stmt.setLong(1, clientId);
-            ResultSet resultSet = stmt.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getInt(1);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return 0;
+        return countById(clientId, COUNT_ALL_RESERVATION_BY_CLIENT);
     }
 
     public int countDistinctVehiclesByClientId(long clientId) throws DaoException {
-        try {
-            Connection connection = ConnectionManager.getConnection();
-            PreparedStatement stmt = connection.prepareStatement(COUNT_DISTINCT_VEHICLES_BY_CLIENT_QUERY);
-            stmt.setLong(1, clientId);
-            ResultSet resultSet = stmt.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getInt(1);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return 0;
+        return countById(clientId, COUNT_DISTINCT_VEHICLES_BY_CLIENT_QUERY);
     }
 
     public List<ReservationDto> findResaByClientWithVehicle(long clientId) throws DaoException {

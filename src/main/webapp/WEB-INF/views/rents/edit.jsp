@@ -1,7 +1,8 @@
-<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html>
-<%@include file="/WEB-INF/views/common/head.jsp"%>
+<%@include file="/WEB-INF/views/common/head.jsp" %>
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
 
@@ -25,15 +26,24 @@
                     <!-- Horizontal Form -->
                     <div class="box">
                         <!-- form start -->
-                        <form class="form-horizontal" method="post" action="${pageContext.request.contextPath}/rents/create">
+                        <form class="form-horizontal" method="post"
+                              action="${pageContext.request.contextPath}/rents/edit?id=${id}">
                             <div class="box-body">
                                 <div class="form-group">
                                     <label for="vehicle" class="col-sm-2 control-label">Voiture</label>
 
                                     <div class="col-sm-10">
                                         <select class="form-control" id="vehicle" name="vehicle">
+                                            <jsp:useBean id="vehicles" scope="request" type="java.util.List"/>
                                             <c:forEach items="${vehicles}" var="car">
-                                                <option value="${car.id()}">${car.constructeur()} ${car.modele()}</option>
+                                                <c:choose>
+                                                    <c:when test="${car.id() == reservation.vehicleId()}">
+                                                        <option value="${car.id()}" selected>${car.constructeur()} ${car.modele()}</option>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <option value="${car.id()}">${car.constructeur()} ${car.modele()}</option>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </c:forEach>
                                         </select>
                                     </div>
@@ -43,8 +53,16 @@
 
                                     <div class="col-sm-10">
                                         <select class="form-control" id="client" name="client">
+                                            <jsp:useBean id="clients" scope="request" type="java.util.List"/>
                                             <c:forEach items="${clients}" var="client">
-                                                <option value="${client.id()}">${client.nom()} ${client.prenom()}</option>
+                                                <c:choose>
+                                                    <c:when test="${client.id() == reservation.clientId()}">
+                                                        <option value="${client.id()}" selected>${client.nom()} ${client.prenom()}</option>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <option value="${client.id()}">${client.nom()} ${client.prenom()}</option>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </c:forEach>
                                         </select>
                                     </div>
@@ -54,21 +72,22 @@
 
                                     <div class="col-sm-10">
                                         <input type="text" class="form-control" id="begin" name="begin" required
+                                               value="<fmt:formatDate value="${reservationDebut}" pattern="dd/MM/yyyy" />"
                                                data-inputmask="'alias': 'dd/mm/yyyy'" data-mask>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="end" class="col-sm-2 control-label">Date de fin</label>
-
                                     <div class="col-sm-10">
                                         <input type="text" class="form-control" id="end" name="end" required
+                                               value="<fmt:formatDate value="${reservationFin}" pattern="dd/MM/yyyy" />"
                                                data-inputmask="'alias': 'dd/mm/yyyy'" data-mask>
                                     </div>
                                 </div>
                             </div>
                             <!-- /.box-body -->
                             <div class="box-footer">
-                                <button type="submit" class="btn btn-info pull-right">Ajouter</button>
+                                <button type="submit" class="btn btn-info pull-right">Valider</button>
                             </div>
                             <!-- /.box-footer -->
                         </form>
@@ -90,9 +109,9 @@
 <script src="${pageContext.request.contextPath}/resources/plugins/input-mask/jquery.inputmask.date.extensions.js"></script>
 <script src="${pageContext.request.contextPath}/resources/plugins/input-mask/jquery.inputmask.extensions.js"></script>
 <script>
-    $(function () {
-        $('[data-mask]').inputmask()
-    });
+  $(function () {
+    $('[data-mask]').inputmask()
+  });
 </script>
 </body>
 </html>
