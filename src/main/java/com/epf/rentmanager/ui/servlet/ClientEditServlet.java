@@ -1,5 +1,6 @@
 package com.epf.rentmanager.ui.servlet;
 
+import com.epf.rentmanager.model.Client;
 import com.epf.rentmanager.service.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
@@ -40,14 +41,16 @@ public class ClientEditServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            Long id = Long.parseLong(request.getParameter("id"));
+            long id = Long.parseLong(request.getParameter("id"));
 
             String nom = request.getParameter("last_name");
             String prenom = request.getParameter("first_name");
             String email = request.getParameter("email");
             LocalDate date_naissance = LocalDate.parse(request.getParameter("date_naissance"));
 
-            clientService.update(id, nom, prenom, email, date_naissance);
+            Client updatedClient = new Client(id, nom, prenom, email, date_naissance);
+
+            clientService.update(updatedClient);
             response.sendRedirect(request.getContextPath() + "/users");
         } catch (com.epf.rentmanager.exception.ServiceException e) {
             e.printStackTrace();

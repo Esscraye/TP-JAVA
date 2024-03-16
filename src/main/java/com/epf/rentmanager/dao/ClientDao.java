@@ -57,20 +57,15 @@ public class ClientDao {
         }
     }
 
-    public void update(Long id, String nom, String prenom, String email, LocalDate naissance) throws DaoException {
+    public void update(Client client) throws DaoException {
         try {
-            Optional<Client> existingClientOpt = findById(id);
-            if (!existingClientOpt.isPresent()) {
-                throw new DaoException("Client with id " + id + " does not exist.");
-            }
-
             Connection connection = ConnectionManager.getConnection();
             PreparedStatement stmt = connection.prepareStatement(UPDATE_CLIENT_QUERY);
-            stmt.setString(1, nom);
-            stmt.setString(2, prenom);
-            stmt.setString(3, email);
-            stmt.setDate(4, Date.valueOf(naissance));
-            stmt.setLong(5, id);
+            stmt.setString(1, client.nom());
+            stmt.setString(2, client.prenom());
+            stmt.setString(3, client.email());
+            stmt.setDate(4, Date.valueOf(client.naissance()));
+            stmt.setLong(5, client.id());
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);

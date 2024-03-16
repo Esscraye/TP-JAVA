@@ -39,9 +39,9 @@ public class VehicleService {
         }
     }
 
-    public void update(Long id, String constructeur, String modele, int nb_places) throws ServiceException {
+    public void update(Vehicle vehicle) throws ServiceException {
         try {
-            vehicleDao.update(id, constructeur, modele, nb_places);
+            vehicleDao.update(vehicle);
         } catch (DaoException e) {
             throw new ServiceException(e.getMessage());
         }

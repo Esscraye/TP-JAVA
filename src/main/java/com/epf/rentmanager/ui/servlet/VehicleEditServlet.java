@@ -1,5 +1,6 @@
 package com.epf.rentmanager.ui.servlet;
 
+import com.epf.rentmanager.model.Vehicle;
 import com.epf.rentmanager.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
@@ -39,13 +40,15 @@ public class VehicleEditServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            Long id = Long.parseLong(request.getParameter("id"));
+            long id = Long.parseLong(request.getParameter("id"));
 
             String constructeur = request.getParameter("constructeur");
             String modele = request.getParameter("modele");
             int nb_places = Integer.parseInt(request.getParameter("nbPlaces"));
 
-            vehicleService.update(id, constructeur, modele, nb_places);
+            Vehicle updatedVehicle = new Vehicle(id, constructeur, modele, nb_places);
+
+            vehicleService.update(updatedVehicle);
             response.sendRedirect(request.getContextPath() + "/cars");
         } catch (com.epf.rentmanager.exception.ServiceException e) {
             e.printStackTrace();

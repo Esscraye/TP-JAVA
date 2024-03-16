@@ -41,6 +41,17 @@ public class ReservationService {
         }
     }
 
+    public void update(Reservation reservation) throws ServiceException {
+        if (reservation.debut().isAfter(reservation.fin())) {
+            throw new ServiceException("La date de début doit être avant la date de fin");
+        }
+        try {
+            reservationDao.update(reservation);
+        } catch (DaoException e) {
+            throw new ServiceException(e.getMessage());
+        }
+    }
+
     public List<Reservation> findAll() throws ServiceException {
         try {
             return reservationDao.findAll();
