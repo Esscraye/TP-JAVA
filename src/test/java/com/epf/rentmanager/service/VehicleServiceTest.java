@@ -107,4 +107,34 @@ public class VehicleServiceTest {
         assertEquals(vehicles, result);
         verify(vehicleDao, times(1)).findVehiclesByClient(1L);
     }
+
+    @Test
+    public void vehicle_creation_with_invalid_data_throws_exception() {
+        Vehicle vehicle = new Vehicle(1, null, "Model S", 5);
+        assertThrows(ServiceException.class, () -> vehicleService.create(vehicle));
+
+        Vehicle vehicle2 = new Vehicle(1, "Tesla", null, 5);
+        assertThrows(ServiceException.class, () -> vehicleService.create(vehicle2));
+
+        Vehicle vehicle3 = new Vehicle(1, "Tesla", "Model S", 1);
+        assertThrows(ServiceException.class, () -> vehicleService.create(vehicle3));
+
+        Vehicle vehicle4 = new Vehicle(1, "Tesla", "Model S", 10);
+        assertThrows(ServiceException.class, () -> vehicleService.create(vehicle4));
+    }
+
+    @Test
+    public void vehicle_update_with_invalid_data_throws_exception() {
+        Vehicle vehicle = new Vehicle(1, null, "Model S", 5);
+        assertThrows(ServiceException.class, () -> vehicleService.update(vehicle));
+
+        Vehicle vehicle2 = new Vehicle(1, "Tesla", null, 5);
+        assertThrows(ServiceException.class, () -> vehicleService.update(vehicle2));
+
+        Vehicle vehicle3 = new Vehicle(1, "Tesla", "Model S", 1);
+        assertThrows(ServiceException.class, () -> vehicleService.update(vehicle3));
+
+        Vehicle vehicle4 = new Vehicle(1, "Tesla", "Model S", 10);
+        assertThrows(ServiceException.class, () -> vehicleService.update(vehicle4));
+    }
 }

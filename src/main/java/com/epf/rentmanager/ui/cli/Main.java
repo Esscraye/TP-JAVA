@@ -1,6 +1,7 @@
 package com.epf.rentmanager.ui.cli;
 
 import com.epf.rentmanager.configuration.AppConfiguration;
+import com.epf.rentmanager.exception.DaoException;
 import com.epf.rentmanager.exception.ServiceException;
 import com.epf.rentmanager.model.Client;
 import com.epf.rentmanager.model.Reservation;
@@ -66,6 +67,8 @@ public class Main {
             System.out.println("Client créé avec succès !");
         } catch (ServiceException e) {
             System.out.println("Erreur lors de la création du client : " + e.getMessage());
+        } catch (DaoException e) {
+            throw new RuntimeException(e);
         }
     }
 

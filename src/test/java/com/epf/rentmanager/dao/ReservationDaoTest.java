@@ -82,4 +82,51 @@ public class ReservationDaoTest {
         assertEquals(5, result);
         verify(reservationDao, times(1)).countAllReservations();
     }
+
+    @Test
+    public void create_reservation_same_vehicle_same_dates() throws DaoException {
+        Reservation reservation1 = new Reservation(1, 1, 1, LocalDate.now(), LocalDate.now().plusDays(1));
+        Reservation reservation2 = new Reservation(2, 1, 1, LocalDate.now(), LocalDate.now().plusDays(1));
+        when(reservationDao.create(reservation1)).thenReturn(1L);
+        when(reservationDao.create(reservation2)).thenThrow(DaoException.class);
+
+        long id = reservationDao.create(reservation1);
+        assertThrows(DaoException.class, () -> reservationDao.create(reservation2));
+        verify(reservationDao, times(1)).create(reservation1);
+        verify(reservationDao, times(1)).create(reservation2);
+    }
+
+    @Test
+    public void create_reservation_same_vehicle_more_than_seven_days() throws DaoException {
+        Reservation reservation = new Reservation(1, 1, 1, LocalDate.now(), LocalDate.now().plusDays(8));
+        when(reservationDao.create(reservation)).thenThrow(DaoException.class);
+
+        assertThrows(DaoException.class, () -> reservationDao.create(reservation));
+        verify(reservationDao, times(1)).create(reservation);
+    }
+
+    @Test
+    public void create_reservation_same_vehicle_thirty_days() throws DaoException {
+        Reservation reservation1 = new Reservation(1, 1, 1, LocalDate.now(), LocalDate.now().plusDays(6));
+        Reservation reservation2 = new Reservation(2, 1, 1, LocalDate.now().plusDays(7), LocalDate.now().plusDays(6));
+        Reservation reservation3 = new Reservation(3, 1, 1, LocalDate.now().plusDays(14), LocalDate.now().plusDays(6));
+        Reservation reservation4 = new Reservation(4, 1, 1, LocalDate.now().plusDays(21), LocalDate.now().plusDays(6));
+        Reservation reservation5 = new Reservation(5, 1, 1, LocalDate.now().plusDays(28), LocalDate.now().plusDays(3));
+        when(reservationDao.create(reservation1)).thenReturn(1L);
+        when(reservationDao.create(reservation2)).thenReturn(2L);
+        when(reservationDao.create(reservation3)).thenReturn(3L);
+        when(reservationDao.create(reservation4)).thenReturn(4L);
+        when(reservationDao.create(reservation5)).thenThrow(DaoException.class);
+
+        long id1 = reservationDao.create(reservation1);
+        long id2 = reservationDao.create(reservation2);
+        long id3 = reservationDao.create(reservation3);
+        long id4 = reservationDao.create(reservation4);
+        assertThrows(DaoException.class, () -> reservationDao.create(reservation5));
+        verify(reservationDao, times(1)).create(reservation1);
+        verify(reservationDao, times(1)).create(reservation2);
+        verify(reservationDao, times(1)).create(reservation3);
+        verify(reservationDao, times(1)).create(reservation4);
+        verify(reservationDao, times(1)).create(reservation5);
+    }
 }

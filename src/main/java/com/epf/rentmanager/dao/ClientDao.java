@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +17,7 @@ public class ClientDao {
 
     private static final String CREATE_CLIENT_QUERY = "INSERT INTO Client(nom, prenom, email, naissance) VALUES(?, ?, ?, ?);";
     private static final String DELETE_CLIENT_QUERY = "DELETE FROM Client WHERE id=?;";
+    private static final String DELETE_RESERVATION_BY_CLIENT_ID_QUERY = "DELETE FROM Reservation WHERE client_id=?;";
     private static final String FIND_CLIENT_QUERY = "SELECT nom, prenom, email, naissance FROM Client WHERE id=?;";
     private static final String FIND_CLIENTS_QUERY = "SELECT id, nom, prenom, email, naissance FROM Client;";
     private static final String COUNT_ALL_CLIENTS_QUERY = "SELECT COUNT(*) FROM Client;";
@@ -27,6 +29,22 @@ public class ClientDao {
         long id;
         try {
             Connection connection = ConnectionManager.getConnection();
+
+            if (Period.between(client.naissance(), LocalDate.now()).getYears() < 18) {
+                throw new DaoException("Client must be at least 18 years old.");
+            }
+
+            PreparedStatement checkEmailStmt = connection.prepareStatement("SELECT COUNT(*) FROM Client WHERE email = ?;");
+            checkEmailStmt.setString(1, client.email());
+            ResultSet emailResultSet = checkEmailStmt.executeQuery();
+            if (emailResultSet.next() && emailResultSet.getInt(1) > 0) {
+                throw new DaoException("Email is already in use.");
+            }
+
+            if (client.nom().length() < 3 || client.prenom().length() < 3) {
+                throw new DaoException("Name and surname must be at least 3 characters long.");
+            }
+
             PreparedStatement stmt = connection.prepareStatement(CREATE_CLIENT_QUERY, Statement.RETURN_GENERATED_KEYS);
             stmt.setString(1, client.nom());
             stmt.setString(2, client.prenom());
@@ -46,9 +64,20 @@ public class ClientDao {
         return id;
     }
 
+    private void deleteByClientId(long clientId) {
+        try {
+            Connection connection = ConnectionManager.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(DELETE_RESERVATION_BY_CLIENT_ID_QUERY);
+            stmt.setLong(1, clientId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
     public long delete(Client client) throws DaoException {
         try {
             Connection connection = ConnectionManager.getConnection();
+            deleteByClientId(client.id());
             PreparedStatement stmt = connection.prepareStatement(DELETE_CLIENT_QUERY);
             stmt.setLong(1, client.id());
             return stmt.executeUpdate();

@@ -1,7 +1,7 @@
-<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html>
-<%@include file="/WEB-INF/views/common/head.jsp"%>
+<%@include file="/WEB-INF/views/common/head.jsp" %>
 <body class="hold-transition skin-blue sidebar-mini">
 <div class="wrapper">
 
@@ -29,30 +29,33 @@
                         <!-- est d�crit an l'attribut "method" de la balise forme -->
                         <!-- action indique � quel "cible" sera envoyr la requ�te, ici notre Servlet qui sera bind sur -->
                         <!-- /vehicles/create -->
-                        <form class="form-horizontal" method="post" action="${pageContext.request.contextPath}/vehicles/create">
+                        <form class="form-horizontal" method="post"
+                              action="${pageContext.request.contextPath}/vehicles/create">
                             <div class="box-body">
                                 <div class="form-group">
                                     <label for="manufacturer" class="col-sm-2 control-label">Marque</label>
 
-									<!-- Pour r�up�rer la valeur rentr�e dans un champ input de cette jsp au niveau de votre servlet -->
-									<!-- vous devez passer par les methodes getParameter de l'objet request, est sp�cifiant la valeur -->
-									<!-- de l'attribut "name" de l'input -->
+                                    <!-- Pour r�up�rer la valeur rentr�e dans un champ input de cette jsp au niveau de votre servlet -->
+                                    <!-- vous devez passer par les methodes getParameter de l'objet request, est sp�cifiant la valeur -->
+                                    <!-- de l'attribut "name" de l'input -->
                                     <div class="col-sm-10">
-                                        <input type="text" class="form-control" id="manufacturer" name="constructeur" placeholder="Marque" required>
+                                        <input type="text" class="form-control" id="manufacturer" name="constructeur"
+                                               placeholder="Marque" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="modele" class="col-sm-2 control-label">Modele</label>
 
                                     <div class="col-sm-10">
-                                        <input type="text" class="form-control" id="modele" name="modele" placeholder="Modele" required>
+                                        <input type="text" class="form-control" id="modele" name="modele"
+                                               placeholder="Modele" required>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="seats" class="col-sm-2 control-label">Nombre de places</label>
-
                                     <div class="col-sm-10">
-                                        <input type="text" class="form-control" id="seats" name="nbPlaces" placeholder="Nombre de places" required>
+                                        <input type="number" class="form-control" id="seats" name="nbPlaces"
+                                               placeholder="Nombre de places" required min="2" max="9">
                                     </div>
                                 </div>
                                 <!--

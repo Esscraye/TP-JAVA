@@ -1,9 +1,11 @@
 package com.epf.rentmanager.dao;
 
 import com.epf.rentmanager.exception.DaoException;
+import com.epf.rentmanager.exception.ServiceException;
 import com.epf.rentmanager.model.Vehicle;
 import com.epf.rentmanager.persistence.ConnectionManager;
 import org.springframework.stereotype.Repository;
+import com.epf.rentmanager.service.ReservationService;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ public class VehicleDao {
 
     private static final String CREATE_VEHICLE_QUERY = "INSERT INTO Vehicle(constructeur, modele, nb_places) VALUES(?, ?, ?);";
     private static final String DELETE_VEHICLE_QUERY = "DELETE FROM Vehicle WHERE id=?;";
+    private static final String DELETE_RESERVATION_BY_VEHICLE_ID_QUERY = "DELETE FROM Reservation WHERE vehicle_id=?;";
     private static final String UPDATE_VEHICLE_QUERY = "UPDATE Vehicle SET constructeur=?, modele=?, nb_places=? WHERE id=?;";
     private static final String FIND_VEHICLE_QUERY = "SELECT id, constructeur, modele, nb_places FROM Vehicle WHERE id=?;";
     private static final String FIND_ALL_VEHICLES_QUERY = "SELECT id, constructeur, modele, nb_places FROM Vehicle;";
@@ -29,8 +32,14 @@ public class VehicleDao {
 
     public long create(Vehicle vehicle) throws DaoException {
         long id = 0;
-        try {
-            Connection connection = ConnectionManager.getConnection();
+
+        if (vehicle == null || vehicle.constructeur() == null || vehicle.constructeur().isEmpty() ||
+            vehicle.modele() == null || vehicle.modele().isEmpty() ||
+            vehicle.nbPlaces() < 2 || vehicle.nbPlaces() > 9) {
+            throw new DaoException("Invalid vehicle data");
+        }
+
+        try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement stmt = connection.prepareStatement(CREATE_VEHICLE_QUERY, Statement.RETURN_GENERATED_KEYS);
             stmt.setString(1, vehicle.constructeur());
             stmt.setString(2, vehicle.modele());
@@ -46,9 +55,22 @@ public class VehicleDao {
         return id;
     }
 
+
+    private void deleteByVehicleId(long vehicleId) {
+        try {
+            Connection connection = ConnectionManager.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(DELETE_RESERVATION_BY_VEHICLE_ID_QUERY);
+            stmt.setLong(1, vehicleId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public long delete(Vehicle vehicle) throws DaoException {
         try {
             Connection connection = ConnectionManager.getConnection();
+            deleteByVehicleId(vehicle.id());
             PreparedStatement stmt = connection.prepareStatement(DELETE_VEHICLE_QUERY);
             stmt.setLong(1, vehicle.id());
             return stmt.executeUpdate();
@@ -58,6 +80,9 @@ public class VehicleDao {
     }
 
     public void update(Vehicle vehicle) throws DaoException {
+        if (vehicle.constructeur() == null || vehicle.modele() == null || vehicle.nbPlaces() < 2 || vehicle.nbPlaces() > 9) {
+            throw new DaoException("Invalid vehicle data");
+        }
         try {
             Connection connection = ConnectionManager.getConnection();
             PreparedStatement stmt = connection.prepareStatement(UPDATE_VEHICLE_QUERY);

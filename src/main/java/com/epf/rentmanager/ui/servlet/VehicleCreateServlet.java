@@ -33,16 +33,22 @@ public class VehicleCreateServlet extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String constructeur = request.getParameter("constructeur");
-        String modele = request.getParameter("modele");
-        int nbPlaces = Integer.parseInt(request.getParameter("nbPlaces"));
+    String constructeur = request.getParameter("constructeur");
+    String modele = request.getParameter("modele");
+    int nbPlaces = Integer.parseInt(request.getParameter("nbPlaces"));
 
-        Vehicle newVehicle = new Vehicle(0, constructeur, modele, nbPlaces);
-        try {
-            vehicleService.create(newVehicle);
-            response.sendRedirect(request.getContextPath() + "/vehicles");
-        } catch (com.epf.rentmanager.exception.ServiceException e) {
-            e.printStackTrace();
-        }
+    if (constructeur == null || modele == null || nbPlaces < 2 || nbPlaces > 9) {
+        request.setAttribute("error", "Invalid vehicle data");
+        this.getServletContext().getRequestDispatcher("/WEB-INF/views/vehicles/create.jsp").forward(request, response);
+        return;
     }
+
+    Vehicle newVehicle = new Vehicle(0, constructeur, modele, nbPlaces);
+    try {
+        vehicleService.create(newVehicle);
+        response.sendRedirect(request.getContextPath() + "/vehicles");
+    } catch (com.epf.rentmanager.exception.ServiceException e) {
+        e.printStackTrace();
+    }
+}
 }
