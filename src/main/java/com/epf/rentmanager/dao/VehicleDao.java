@@ -1,11 +1,9 @@
 package com.epf.rentmanager.dao;
 
 import com.epf.rentmanager.exception.DaoException;
-import com.epf.rentmanager.exception.ServiceException;
 import com.epf.rentmanager.model.Vehicle;
 import com.epf.rentmanager.persistence.ConnectionManager;
 import org.springframework.stereotype.Repository;
-import com.epf.rentmanager.service.ReservationService;
 
 import java.sql.*;
 import java.util.ArrayList;

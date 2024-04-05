@@ -122,6 +122,7 @@ public class ReservationDaoTest {
         long id2 = reservationDao.create(reservation2);
         long id3 = reservationDao.create(reservation3);
         long id4 = reservationDao.create(reservation4);
+
         assertThrows(DaoException.class, () -> reservationDao.create(reservation5));
         verify(reservationDao, times(1)).create(reservation1);
         verify(reservationDao, times(1)).create(reservation2);

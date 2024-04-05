@@ -46,7 +46,7 @@ public class VehicleCreateServlet extends HttpServlet {
     Vehicle newVehicle = new Vehicle(0, constructeur, modele, nbPlaces);
     try {
         vehicleService.create(newVehicle);
-        response.sendRedirect(request.getContextPath() + "/vehicles");
+        response.sendRedirect(request.getContextPath() + "/cars");
     } catch (com.epf.rentmanager.exception.ServiceException e) {
         e.printStackTrace();
     }

@@ -10,7 +10,10 @@ import com.epf.rentmanager.persistence.ConnectionManager;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,9 +40,20 @@ public class ReservationDao {
                 FROM Reservation r JOIN Vehicle v ON r.vehicle_id = v.id
                 WHERE r.client_id=?;
             """;
-    private static final String CHECK_VEHICLE_RESERVED_SAME_DAY_QUERY = "SELECT COUNT(*) FROM Reservation WHERE vehicle_id=? AND debut<=? AND fin>=?";
-    private static final String CHECK_VEHICLE_RESERVED_CONSECUTIVE_DAYS_BY_SAME_CLIENT_QUERY = "SELECT MAX(fin) FROM Reservation WHERE vehicle_id=? AND client_id=? AND fin<=?";
-    private static final String CHECK_VEHICLE_RESERVED_CONSECUTIVE_DAYS_WITHOUT_BREAK_QUERY = "SELECT MAX(fin) FROM Reservation WHERE vehicle_id=? AND fin<=?";
+    private static final String CHECK_VEHICLE_RESERVED_SAME_DAY_QUERY = """
+        SELECT COUNT(*)\s
+        FROM Reservation\s
+        WHERE vehicle_id = ?\s
+        AND (
+            (debut BETWEEN ? AND ?)\s
+            OR (fin BETWEEN ? AND ?)\s
+            OR (debut <= ? AND fin >= ?)\s
+            OR (debut = ?)\s
+            OR (fin = ?)\s
+            OR (debut = ?)\s
+            OR (fin = ?)
+        )
+            """;
 
     private ReservationDao() {
     }
@@ -60,53 +74,65 @@ public class ReservationDao {
     }
 
     public long create(Reservation reservation) throws DaoException {
-        long id = 0;
         try {
             Connection connection = ConnectionManager.getConnection();
 
-            checkVehicleReservedSameDay(connection, reservation);
+            if (checkVehicleReservedSameDay(reservation)) {
+                throw new DaoException("Vehicle already reserved for the same day");
+            }
 
-            checkVehicleReservedConsecutiveDaysBySameClient(connection, reservation);
+            else if (checkVehicleReservedConsecutiveDaysBySameClient(reservation)) {
+                throw new DaoException("Vehicle cannot be reserved for more than 7 consecutive days by the same client");
+            }
 
-            checkVehicleReservedConsecutiveDaysWithoutBreak(connection, reservation);
+            else  if (checkVehicleReservedConsecutiveDaysWithoutBreak(reservation)) {
+                throw new DaoException("Vehicle cannot be reserved for 30 consecutive days without a break");
+            }
 
-            id = createReservation(connection, reservation);
+            else  return createReservation(connection, reservation);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return id;
     }
 
-    private void checkVehicleReservedSameDay(Connection connection, Reservation reservation) throws SQLException, DaoException {
+    public boolean checkVehicleReservedSameDay(Reservation reservation) throws SQLException, DaoException {
+        Connection connection = ConnectionManager.getConnection();
         PreparedStatement stmt = connection.prepareStatement(CHECK_VEHICLE_RESERVED_SAME_DAY_QUERY);
         stmt.setLong(1, reservation.vehicleId());
         stmt.setDate(2, Date.valueOf(reservation.debut()));
-        stmt.setDate(3, Date.valueOf(reservation.debut()));
+        stmt.setDate(3, Date.valueOf(reservation.fin()));
+        stmt.setDate(4, Date.valueOf(reservation.debut()));
+        stmt.setDate(5, Date.valueOf(reservation.fin()));
+        stmt.setDate(6, Date.valueOf(reservation.debut()));
+        stmt.setDate(7, Date.valueOf(reservation.fin()));
+        stmt.setDate(8, Date.valueOf(reservation.debut()));
+        stmt.setDate(9, Date.valueOf(reservation.fin()));
+        stmt.setDate(10, Date.valueOf(reservation.debut()));
+        stmt.setDate(11, Date.valueOf(reservation.fin()));
         ResultSet resultSet = stmt.executeQuery();
-        if (resultSet.next() && resultSet.getInt(1) > 0) {
-            throw new DaoException("Vehicle is already reserved on this day");
-        }
+        return resultSet.next() && resultSet.getInt(1) > 0;
     }
 
-    private void checkVehicleReservedConsecutiveDaysBySameClient(Connection connection, Reservation reservation) throws SQLException, DaoException {
-        PreparedStatement stmt = connection.prepareStatement(CHECK_VEHICLE_RESERVED_CONSECUTIVE_DAYS_BY_SAME_CLIENT_QUERY);
-        stmt.setLong(1, reservation.vehicleId());
-        stmt.setLong(2, reservation.clientId());
-        stmt.setDate(3, Date.valueOf(reservation.debut().plusDays(7)));
-        ResultSet resultSet = stmt.executeQuery();
-        if (resultSet.next() && resultSet.getDate(1) != null && !resultSet.getDate(1).toLocalDate().isBefore(reservation.debut())) {
-            throw new DaoException("Vehicle cannot be reserved for more than 7 consecutive days by the same client");
-        }
+    public boolean checkVehicleReservedConsecutiveDaysBySameClient(Reservation reservation) throws DaoException {
+        return ChronoUnit.DAYS.between(reservation.debut(), reservation.fin()) > 7;
     }
 
-    private void checkVehicleReservedConsecutiveDaysWithoutBreak(Connection connection, Reservation reservation) throws SQLException, DaoException {
-        PreparedStatement stmt = connection.prepareStatement(CHECK_VEHICLE_RESERVED_CONSECUTIVE_DAYS_WITHOUT_BREAK_QUERY);
-        stmt.setLong(1, reservation.vehicleId());
-        stmt.setDate(2, Date.valueOf(reservation.debut().plusDays(30)));
-        ResultSet resultSet = stmt.executeQuery();
-        if (resultSet.next() && resultSet.getDate(1) != null && !resultSet.getDate(1).toLocalDate().isBefore(reservation.debut())) {
-            throw new DaoException("Vehicle cannot be reserved for 30 consecutive days without a break");
+    public boolean checkVehicleReservedConsecutiveDaysWithoutBreak(Reservation reservation) throws SQLException, DaoException {
+        List<Reservation> reservations = findResaByVehicleId(reservation.vehicleId());
+        reservations.add(reservation);
+        reservations.sort(Comparator.comparing(Reservation::debut));
+        int count = 0;
+        for (int i = 0; i < reservations.size() - 1; i++) {
+            if (reservations.get(i+1).debut().isEqual(reservations.get(i ).fin().plusDays(1))) {
+                count += (int) reservations.get(i).debut().until(reservations.get(i).fin(), ChronoUnit.DAYS);
+            } else {
+                count = 0;
+            }
+            if (count > 30) {
+                return true;
+            }
         }
+        return false;
     }
 
     private long createReservation(Connection connection, Reservation reservation) throws SQLException {

@@ -84,6 +84,9 @@
                                                data-inputmask="'alias': 'dd/mm/yyyy'" data-mask>
                                     </div>
                                 </div>
+                                <% if (request.getAttribute("error") != null) { %>
+                                    <p class="error"><%= request.getAttribute("error") %></p>
+                                <% } %>
                             </div>
                             <!-- /.box-body -->
                             <div class="box-footer">
@@ -113,5 +116,10 @@
     $('[data-mask]').inputmask()
   });
 </script>
+<style>
+    .error {
+        color: red;
+    }
+</style>
 </body>
 </html>

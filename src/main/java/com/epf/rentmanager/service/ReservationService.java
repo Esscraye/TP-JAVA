@@ -9,6 +9,7 @@ import com.epf.rentmanager.model.Reservation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,34 @@ public class ReservationService {
             return reservationDao.create(reservation);
         } catch (DaoException e) {
             throw new ServiceException(e.getMessage());
+        }
+    }
+
+    public boolean checkVehicleReservedSameDay(Reservation reservation) throws ServiceException {
+        try {
+            return reservationDao.checkVehicleReservedSameDay(reservation);
+        } catch (DaoException e) {
+            throw new ServiceException(e.getMessage());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean checkVehicleReservedConsecutiveDaysBySameClient(Reservation reservation) throws ServiceException {
+        try {
+            return reservationDao.checkVehicleReservedConsecutiveDaysBySameClient(reservation);
+        } catch (DaoException e) {
+            throw new ServiceException(e.getMessage());
+        }
+    }
+
+    public boolean checkVehicleReservedConsecutiveDaysWithoutBreak(Reservation reservation) throws ServiceException {
+        try {
+            return reservationDao.checkVehicleReservedConsecutiveDaysWithoutBreak(reservation);
+        } catch (DaoException e) {
+            throw new ServiceException(e.getMessage());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 

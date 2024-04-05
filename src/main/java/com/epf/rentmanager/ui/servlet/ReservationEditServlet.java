@@ -1,5 +1,6 @@
 package com.epf.rentmanager.ui.servlet;
 
+import com.epf.rentmanager.exception.ServiceException;
 import com.epf.rentmanager.model.Reservation;
 import com.epf.rentmanager.service.ClientService;
 import com.epf.rentmanager.service.ReservationService;
@@ -72,6 +73,19 @@ public class ReservationEditServlet extends HttpServlet {
             LocalDate fin = LocalDate.parse(request.getParameter("end"), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
             Reservation reservation = new Reservation(id, clientId, vehicleId, debut, fin);
+
+            try {
+                if (reservationService.checkVehicleReservedConsecutiveDaysBySameClient(reservation)) {
+                    throw new ServletException("Vehicle cannot be reserved for more than 7 consecutive days by the same client");
+                }
+            } catch (ServletException e) {
+                request.setAttribute("error", e.getMessage());
+                doGet(request, response);
+                return;
+            } catch (Exception e) {
+                throw new ServletException(e);
+            }
+
             reservationService.update(reservation);
             response.sendRedirect(request.getContextPath() + "/rents");
         } catch (com.epf.rentmanager.exception.ServiceException e) {
